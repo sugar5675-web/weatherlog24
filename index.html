@@ -1,0 +1,1104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WeatherLog24 — 전 세계 실시간 날씨 관측</title>
+<meta name="description" content="도시 이름 하나로 전 세계의 기온, 체감온도, 습도, 바람, 대기질을 실시간으로 확인하세요.">
+<meta property="og:title" content="WeatherLog24 — 전 세계 실시간 날씨 관측">
+<meta property="og:description" content="도시 이름 하나로 전 세계의 기온, 체감온도, 습도, 바람, 대기질을 실시간으로 확인하세요.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%232f5d3a'/%3E%3Cpath d='M18 40c0-5 4-8 8-8 1-6 6-9 11-9 6 0 10 4 11 9 4 0 7 3 7 7 0 4-3 7-7 7H25c-4 0-7-3-7-6z' fill='%23faf9f6'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one column of sections on a cream ground, deep-green type, sage pills; cards only where a reading lives. */
+:root{
+  --bg:#faf9f6; --surface:#ffffff; --surface-2:#f2f4ed; --fg:#1f2e23; --muted:#5e6d61; --line:#dde3d6;
+  --green:#2f5d3a; --green-deep:#213f29; --sage:#c0cfb2; --sage-soft:#e6ecdd; --ink-on-sage:#1f2e23;
+  --good:#3a8f4c; --mod:#c9a227; --usg:#d9792a; --bad:#c7443f; --vbad:#8e4aa0; --haz:#7a2a3a;
+  --shadow:0 12px 32px rgba(31,46,35,.08);
+  --radius:22px; --radius-sm:14px;
+  --display:"Gothic A1","Noto Sans KR",system-ui,sans-serif;
+  --body:"Noto Sans KR",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1712; --surface:#172119; --surface-2:#1d2a21; --fg:#e9efe5; --muted:#9fb1a3; --line:#2b3b2f;
+    --green:#9cc3a6; --green-deep:#b8d6bf; --sage:#5d7d64; --sage-soft:#223328; --ink-on-sage:#f2f6ef;
+    --shadow:0 12px 32px rgba(0,0,0,.35); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1712; --surface:#172119; --surface-2:#1d2a21; --fg:#e9efe5; --muted:#9fb1a3; --line:#2b3b2f;
+  --green:#9cc3a6; --green-deep:#b8d6bf; --sage:#5d7d64; --sage-soft:#223328; --ink-on-sage:#f2f6ef;
+  --shadow:0 12px 32px rgba(0,0,0,.35); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.65;min-height:100%}
+img,svg{max-width:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:6px}
+[hidden]{display:none!important}
+.wrap{max-width:1120px;margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);line-height:1.25;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:800}
+h2{font-size:clamp(1.5rem,3vw,2.15rem);font-weight:800}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:700}
+.eyebrow::before{content:"";width:22px;height:2px;background:var(--green);border-radius:2px}
+.lead{color:var(--muted);max-width:62ch}
+.num{font-variant-numeric:tabular-nums}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:999px;padding:12px 22px;font-weight:700;cursor:pointer;transition:transform .15s,background .2s,border-color .2s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--sage);color:var(--ink-on-sage)}
+.btn-primary:hover{background:var(--green);color:#fff}
+.btn-ghost{background:transparent;border-color:var(--line);color:var(--fg)}
+.btn-ghost:hover{border-color:var(--green);color:var(--green)}
+.btn-sm{padding:9px 16px;font-size:.92rem}
+.btn-block{width:100%}
+.btn svg{width:18px;height:18px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:.92rem;background:var(--surface);cursor:pointer;transition:border-color .2s,background .2s}
+.chip:hover{border-color:var(--green);color:var(--green)}
+.chip[aria-pressed="true"]{background:var(--sage);border-color:var(--sage);color:var(--ink-on-sage)}
+
+/* header */
+.site-header{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.site-header .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:74px}
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand strong{font-family:var(--display);font-size:1.38rem;font-weight:800;color:var(--green);letter-spacing:-.02em}
+.brand small{font-size:.66rem;letter-spacing:.22em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+.nav{display:flex;gap:4px}
+.nav a{padding:8px 14px;border-radius:999px;font-weight:500;font-size:.95rem;color:var(--fg);transition:background .2s,color .2s}
+.nav a:hover,.nav a[aria-current="page"]{background:var(--sage-soft);color:var(--green)}
+.nav-toggle{display:none;width:44px;height:44px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;align-items:center;justify-content:center}
+.nav-toggle svg{width:20px;height:20px}
+.nav-overlay{position:fixed;inset:0;z-index:60;background:var(--bg);padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px}
+.nav-overlay .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.nav-overlay a{font-size:1.3rem;font-weight:700;padding:14px 10px;border-bottom:1px solid var(--line)}
+@media (max-width:860px){.nav{display:none}.nav-toggle{display:inline-flex}}
+
+/* sections */
+.section{padding-block:clamp(56px,8vw,96px)}
+.section-head{display:grid;gap:14px;margin-bottom:34px}
+.section-head .row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+
+/* hero */
+.hero{padding-block:clamp(40px,6vw,80px) clamp(40px,6vw,72px)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero-copy{display:grid;gap:22px}
+.search-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);display:grid;gap:14px}
+.search-row{display:grid;grid-template-columns:1.3fr 1fr auto;gap:12px;align-items:end}
+.field{display:grid;gap:6px}
+.field label{font-size:.82rem;font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 14px;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 18%,transparent)}
+.quick{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.quick .lbl{font-size:.85rem;color:var(--muted);font-weight:700;margin-right:4px}
+.hero-visual{position:relative;aspect-ratio:1/1;max-width:100%;border-radius:50% 50% 50% 50%/48% 48% 52% 52%;overflow:hidden;background:linear-gradient(160deg,var(--green-deep),var(--green) 55%,var(--sage));box-shadow:var(--shadow)}
+.hero-visual canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-visual .live-badge{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);background:color-mix(in srgb,var(--bg) 92%,transparent);color:var(--fg);border-radius:999px;padding:8px 14px;font-size:.82rem;font-weight:700;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.hero-visual .readout{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;color:#fff;display:grid;gap:2px;pointer-events:none}
+.hero-visual .readout .big{font-family:var(--display);font-size:clamp(3rem,7vw,4.6rem);font-weight:800;line-height:1;letter-spacing:-.04em}
+.hero-visual .readout .lbl{font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;opacity:.8;font-weight:700}
+.hero-visual .readout .cond{font-weight:700;font-size:1rem;opacity:.95}
+.live-badge .dot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 var(--good);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 55%,transparent)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (max-width:900px){.hero .wrap{grid-template-columns:1fr}.hero-visual{max-width:460px;margin-inline:auto;width:100%}}
+@media (max-width:640px){.search-row{grid-template-columns:1fr}.search-row .btn{width:100%}}
+
+/* dashboard */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:var(--surface)}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--sage);color:var(--ink-on-sage)}
+.status{font-size:.92rem;color:var(--muted);min-height:1.5em}
+.status.error{color:var(--bad);font-weight:500}
+.dash{display:grid;grid-template-columns:1.25fr .75fr;gap:22px;margin-top:22px}
+@media (max-width:900px){.dash{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow)}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.place{display:flex;align-items:center;gap:12px}
+.place .pin{width:42px;height:42px;border-radius:50%;background:var(--sage-soft);display:grid;place-items:center;color:var(--green)}
+.place .pin svg{width:20px;height:20px}
+.place .name{font-family:var(--display);font-weight:800;font-size:1.25rem;line-height:1.2}
+.place .sub{font-size:.88rem;color:var(--muted)}
+.stamp{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--green);background:var(--sage-soft);border-radius:999px;padding:6px 12px}
+.stamp svg{width:14px;height:14px}
+.temp-row{display:flex;align-items:center;gap:22px;margin-top:22px;flex-wrap:wrap}
+.temp-big{font-family:var(--display);font-size:clamp(3.4rem,8vw,5.2rem);font-weight:800;line-height:1;letter-spacing:-.04em;display:flex;align-items:flex-start}
+.temp-big .deg{font-size:.42em;margin-top:.2em;margin-left:2px;font-weight:700;color:var(--muted)}
+.cond{display:grid;gap:4px}
+.cond .ic{width:46px;height:46px;color:var(--green)}
+.cond .txt{font-weight:700;font-size:1.1rem}
+.cond .feel{color:var(--muted);font-size:.92rem}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:22px}
+.metric{background:var(--surface-2);border-radius:var(--radius-sm);padding:14px 16px;display:grid;gap:6px}
+.metric .k{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);font-weight:700}
+.metric .k svg{width:14px;height:14px}
+.metric .v{font-family:var(--display);font-weight:800;font-size:1.25rem;display:flex;align-items:center;gap:8px}
+.metric .v small{font-size:.75rem;color:var(--muted);font-weight:500}
+.wind-arrow{display:inline-block;width:16px;height:16px;transition:transform .5s}
+.aq-card .card-head{align-items:center}
+.aq-badge{width:46px;height:46px;border-radius:50%;background:var(--sage-soft);display:grid;place-items:center;color:var(--green)}
+.aq-badge svg{width:22px;height:22px}
+.aq-main{display:flex;align-items:center;gap:14px;margin-top:18px}
+.aq-val{font-family:var(--display);font-size:3rem;font-weight:800;letter-spacing:-.03em;line-height:1}
+.aq-pill{border-radius:999px;padding:7px 14px;font-weight:700;font-size:.88rem;background:var(--surface-2);color:var(--muted)}
+.aq-pill[data-level="good"]{background:color-mix(in srgb,var(--good) 18%,transparent);color:var(--good)}
+.aq-pill[data-level="moderate"]{background:color-mix(in srgb,var(--mod) 22%,transparent);color:#8a6d0b}
+.aq-pill[data-level="usg"]{background:color-mix(in srgb,var(--usg) 18%,transparent);color:var(--usg)}
+.aq-pill[data-level="bad"]{background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad)}
+.aq-pill[data-level="vbad"]{background:color-mix(in srgb,var(--vbad) 16%,transparent);color:var(--vbad)}
+.aq-pill[data-level="haz"]{background:color-mix(in srgb,var(--haz) 18%,transparent);color:var(--haz)}
+:root[data-theme="dark"] .aq-pill[data-level="moderate"]{color:#e6c75a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .aq-pill[data-level="moderate"]{color:#e6c75a}}
+.aq-bar{height:8px;border-radius:999px;margin-top:16px;background:linear-gradient(90deg,var(--good) 0 16.6%,var(--mod) 16.6% 33.3%,var(--usg) 33.3% 50%,var(--bad) 50% 66.6%,var(--vbad) 66.6% 83.3%,var(--haz) 83.3% 100%);position:relative;opacity:.85}
+.aq-bar i{position:absolute;top:-5px;width:18px;height:18px;border-radius:50%;background:var(--surface);border:3px solid var(--fg);transform:translateX(-50%);transition:left .6s}
+.aq-note{font-size:.82rem;color:var(--muted);margin-top:14px;line-height:1.55}
+.pollutants{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.pollutants .metric .v{font-size:1.1rem}
+
+/* map + forecast */
+.map-grid{display:grid;grid-template-columns:1.3fr .7fr;gap:22px;margin-top:8px}
+@media (max-width:900px){.map-grid{grid-template-columns:1fr}}
+.map-card{padding:0;overflow:hidden;display:grid;grid-template-rows:1fr auto}
+.map-frame{position:relative;width:100%;aspect-ratio:16/11;max-width:100%;background:var(--surface-2)}
+.map-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.map-grid>*{min-width:0}
+.map-foot{padding:14px 18px;font-size:.85rem;color:var(--muted);display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);min-width:0}
+.map-foot span{min-width:0;flex:1;overflow-wrap:anywhere}
+.map-foot svg{width:18px;height:18px;flex:none;color:var(--green)}
+.forecast-list{display:grid;gap:10px;margin-top:18px}
+.day{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:14px;padding:12px 14px;border-radius:var(--radius-sm);background:var(--surface-2)}
+.day .d{font-weight:700;min-width:62px}
+.day .d small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+.day .mid{display:flex;align-items:center;gap:10px;min-width:0}
+.day .ic{display:block;width:36px;height:36px;flex:none;color:var(--green)}
+.day .ic svg{display:block;width:100%;height:100%}
+.day .c{font-size:.85rem;color:var(--muted);line-height:1.35}
+.day .t{text-align:right;font-family:var(--display);font-weight:800;white-space:nowrap}
+.day .t small{display:block;font-weight:500;color:var(--muted);font-size:.78rem;font-family:var(--body)}
+.day .p{font-size:.78rem;color:var(--muted)}
+.fc-note{font-size:.82rem;color:var(--muted);margin-top:14px}
+
+/* features */
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media (max-width:1000px){.features{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.features{grid-template-columns:1fr}}
+.feature{display:grid;gap:10px;padding:22px;border-radius:var(--radius);background:var(--surface-2)}
+.feature .ic{width:40px;height:40px;border-radius:12px;background:var(--surface);display:grid;place-items:center;color:var(--green)}
+.feature .ic svg{width:20px;height:20px}
+.feature p{color:var(--muted);font-size:.94rem}
+
+/* city cards */
+.cities{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:900px){.cities{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.cities{grid-template-columns:1fr}}
+.city{display:grid;grid-template-rows:auto 1fr;border-radius:var(--radius);overflow:hidden;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .2s}
+.city:hover{transform:translateY(-3px)}
+.city-sky{position:relative;aspect-ratio:16/9;max-width:100%;background:linear-gradient(160deg,var(--green-deep),var(--green));display:grid;place-items:center;color:#fff}
+.city-sky[data-sky="day-clear"]{background:linear-gradient(160deg,#2d7fb8,#8ec3e6)}
+.city-sky[data-sky="day-cloud"]{background:linear-gradient(160deg,#5e7f98,#a9bccb)}
+.city-sky[data-sky="day-rain"]{background:linear-gradient(160deg,#3f5970,#7a93a8)}
+.city-sky[data-sky="day-snow"]{background:linear-gradient(160deg,#7f9ab0,#d6e3ee)}
+.city-sky[data-sky="night-clear"]{background:linear-gradient(160deg,#121d3a,#2e4374)}
+.city-sky[data-sky="night-cloud"]{background:linear-gradient(160deg,#242d3d,#4a5668)}
+.city-sky[data-sky="night-rain"]{background:linear-gradient(160deg,#1e2a3a,#3b4d61)}
+.city-sky[data-sky="night-snow"]{background:linear-gradient(160deg,#3a4a60,#8a9ab0)}
+.city-sky .ic{width:64px;height:64px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.city-sky .tchip{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.92);color:#1f2e23;border-radius:999px;padding:6px 12px;font-family:var(--display);font-weight:800;font-size:1.05rem;min-width:52px;text-align:center}
+.city-sky .time{position:absolute;left:14px;bottom:12px;font-size:.78rem;font-weight:700;background:rgba(0,0,0,.28);border-radius:999px;padding:4px 10px}
+.city-body{padding:18px 20px 20px;display:grid;gap:10px;align-content:start}
+.city-body .country{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);font-weight:700}
+.city-body .country svg{width:13px;height:13px}
+.city-body .cond{font-size:.85rem;color:var(--green);font-weight:700;display:block}
+.city-body p{color:var(--muted);font-size:.92rem}
+.city-body .btn{margin-top:6px}
+.empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:var(--radius)}
+
+/* contact */
+.contact{display:grid;grid-template-columns:.8fr 1.2fr;gap:22px;margin-top:8px}
+@media (max-width:900px){.contact{grid-template-columns:1fr}}
+.info-list{display:grid;gap:14px}
+.info{display:grid;gap:4px;padding:18px 20px;border-radius:var(--radius-sm);background:var(--surface-2)}
+.info .k{font-size:.8rem;color:var(--muted);font-weight:700}
+.info .v{font-weight:700}
+.info .v.sel{user-select:all}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+@media (max-width:560px){.form-grid{grid-template-columns:1fr}}
+.notice{margin-top:16px;padding:16px 18px;border-radius:var(--radius-sm);background:var(--sage-soft);display:grid;gap:10px;font-size:.92rem}
+.notice .btn{justify-self:start}
+
+/* footer */
+.site-footer{border-top:1px solid var(--line);padding-block:44px 32px;color:var(--muted);font-size:.92rem}
+.site-footer .wrap{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px}
+@media (max-width:760px){.site-footer .wrap{grid-template-columns:1fr}}
+.site-footer h4{margin:0 0 10px;color:var(--fg);font-size:.95rem}
+.site-footer ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.site-footer a:hover{color:var(--green)}
+.copy{grid-column:1/-1;border-top:1px solid var(--line);padding-top:18px;font-size:.82rem;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+
+/* about */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:30px}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:20px;border-radius:var(--radius-sm);background:var(--surface-2);display:grid;gap:4px}
+.stat .k{font-size:.8rem;color:var(--muted);font-weight:700}
+.stat .v{font-family:var(--display);font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media (max-width:760px){.steps{grid-template-columns:1fr}}
+.step{display:grid;gap:10px;padding:24px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+.step .n{font-family:var(--display);font-weight:800;font-size:1.4rem;color:var(--green)}
+.step p{color:var(--muted);font-size:.94rem}
+.faq{display:grid;gap:10px;max-width:800px}
+.faq details{border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);padding:0 18px}
+.faq summary{cursor:pointer;padding:16px 0;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:1.3rem;color:var(--green);transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{padding:0 0 16px;color:var(--muted);font-size:.94rem}
+.cta{background:var(--green-deep);color:#fff;border-radius:var(--radius);padding:clamp(32px,5vw,56px);display:grid;gap:14px;text-align:center;justify-items:center}
+:root[data-theme="dark"] .cta{color:#0f1712}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta{color:#0f1712}}
+.cta .lead{color:inherit;opacity:.85}
+.cta .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.cta .btn-ghost{border-color:currentColor;color:inherit}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:999px;font-size:.9rem;font-weight:700;z-index:80;box-shadow:var(--shadow);max-width:calc(100% - 32px)}
+.skeleton{color:transparent!important;background:var(--surface-2);border-radius:8px;animation:sk 1.2s infinite}
+@keyframes sk{50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="WeatherLog24 홈으로 이동"><strong>WeatherLog24</strong><small>· 실시간 날씨 관측 ·</small></a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a href="#home" data-nav="home">홈</a>
+      <a href="#live">실시간 관측</a>
+      <a href="#livemap">실시간 지도</a>
+      <a href="#cities" data-nav="cities">도시별 날씨</a>
+      <a href="#about" data-nav="about">서비스 소개</a>
+      <a href="#contact">문의하기</a>
+    </nav>
+    <button class="nav-toggle" id="navOpenButton" type="button" aria-label="메뉴 열기" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="nav-overlay" id="navOverlay" hidden>
+  <div class="top">
+    <span class="brand"><strong>WeatherLog24</strong><small>메뉴</small></span>
+    <button class="nav-toggle" id="navCloseButton" type="button" aria-label="메뉴 닫기" style="display:inline-flex">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <a href="#home">홈</a><a href="#live">실시간 관측</a><a href="#livemap">실시간 지도</a><a href="#cities">도시별 날씨</a><a href="#about">서비스 소개</a><a href="#contact">문의하기</a>
+</div>
+
+<!-- ============ HOME ============ -->
+<main id="view-home" data-view="home">
+  <section class="hero" id="home">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="eyebrow">실시간 글로벌 날씨 관측</span>
+        <h1>전 세계 날씨를 한 화면에서 실시간으로 추적하세요.</h1>
+        <p class="lead">도시 이름 하나만 입력하면 기온, 체감온도, 습도, 바람, 대기질까지 즉시 확인할 수 있습니다. 검색한 도시와 주요 관측 도시의 값을 10분마다 새로 불러옵니다.</p>
+        <form class="search-card" id="weatherSearchForm" autocomplete="off">
+          <div class="search-row">
+            <div class="field">
+              <label for="weatherCityInput">도시 이름</label>
+              <input id="weatherCityInput" name="city" type="text" placeholder="예: 서울, Tokyo, 부산" required minlength="2">
+            </div>
+            <div class="field">
+              <label for="weatherCountryInput">국가 (선택)</label>
+              <input id="weatherCountryInput" name="country" type="text" placeholder="예: 대한민국">
+            </div>
+            <button class="btn btn-primary" type="submit" id="weatherSearchButton">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              날씨 검색
+            </button>
+          </div>
+          <div class="quick" id="quickPicks">
+            <span class="lbl">빠른 선택</span>
+            <button type="button" class="chip" data-city="서울">서울</button>
+            <button type="button" class="chip" data-city="도쿄">도쿄</button>
+            <button type="button" class="chip" data-city="뉴욕">뉴욕</button>
+            <button type="button" class="chip" data-city="런던">런던</button>
+            <button type="button" class="chip" data-city="싱가포르">싱가포르</button>
+          </div>
+        </form>
+      </div>
+      <div class="hero-visual" aria-hidden="true">
+        <canvas id="windCanvas"></canvas>
+        <div class="readout"><span class="lbl" id="heroCity">서울</span><span class="big num" id="heroTemp">—</span><span class="cond" id="heroCond">관측 대기 중</span></div>
+        <div class="live-badge"><span class="dot"></span>실시간 관측 중</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="live">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">실시간 관측 대시보드</span>
+        <div class="row">
+          <h2>검색한 도시의 관측값을 즉시 확인하세요.</h2>
+          <div class="toolbar">
+            <div class="seg" role="group" aria-label="온도 단위">
+              <button type="button" id="unitC" aria-pressed="true">섭씨 °C</button>
+              <button type="button" id="unitF" aria-pressed="false">화씨 °F</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" type="button" id="weatherRefreshButton">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg>
+              새로고침
+            </button>
+          </div>
+        </div>
+        <p class="status" id="weatherStatus" role="status" aria-live="polite">관측값을 불러오는 중입니다…</p>
+      </div>
+
+      <div class="dash">
+        <article class="card" id="currentCard">
+          <div class="card-head">
+            <div class="place">
+              <span class="pin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <div>
+                <div class="name" id="curCity">관측 도시</div>
+                <div class="sub"><span id="curCountry">국가</span> · 현지 시각 <span id="curLocalTime" class="num">—</span></div>
+              </div>
+            </div>
+            <span class="stamp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="curStamp">업데이트 대기 중</span></span>
+          </div>
+          <div class="temp-row">
+            <div class="temp-big"><span id="curTemp" class="num">—</span><span class="deg" id="curUnit">°C</span></div>
+            <div class="cond">
+              <span class="ic" id="curIcon"></span>
+              <span class="txt" id="curCond">관측 대기 중</span>
+              <span class="feel">체감 <span id="curFeel" class="num">—</span></span>
+            </div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v10"/><circle cx="12" cy="17" r="3"/></svg>최저 / 최고</span><span class="v num" id="curMinMax">—</span></div>
+            <div class="metric"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>습도</span><span class="v num" id="curHumidity">—</span></div>
+            <div class="metric"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 18a4 4 0 0 1-.5-8 6 6 0 0 1 11.6 1.5A3.5 3.5 0 0 1 17.5 18H7z"/></svg>구름량</span><span class="v num" id="curClouds">—</span></div>
+            <div class="metric"><span class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/></svg>바람</span><span class="v num" id="curWind">—</span></div>
+          </div>
+        </article>
+
+        <article class="card aq-card">
+          <div class="card-head">
+            <div><span class="eyebrow">대기질 지수</span><h3 style="margin-top:8px">공기 상태</h3></div>
+            <span class="aq-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v8"/><path d="M12 12c-2 0-3 1.5-3 4s-1 4-3 4-3-2-3-5"/><path d="M12 12c2 0 3 1.5 3 4s1 4 3 4 3-2 3-5"/></svg></span>
+          </div>
+          <div class="aq-main">
+            <span class="aq-val num" id="aqValue">—</span>
+            <span class="aq-pill" id="aqLabel">정보 없음</span>
+          </div>
+          <div class="aq-bar" aria-hidden="true"><i id="aqMarker" style="left:0%"></i></div>
+          <p class="aq-note">미국 환경보호청(EPA) 기준 AQI입니다. 50 이하면 좋음, 100 이하면 보통으로 표시됩니다.</p>
+          <div class="pollutants">
+            <div class="metric"><span class="k">PM2.5</span><span class="v num" id="aqPm25">—</span></div>
+            <div class="metric"><span class="k">PM10</span><span class="v num" id="aqPm10">—</span></div>
+            <div class="metric"><span class="k">오존 O₃</span><span class="v num" id="aqO3">—</span></div>
+            <div class="metric"><span class="k">이산화질소 NO₂</span><span class="v num" id="aqNo2">—</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="livemap">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">실시간 지도 · 3일 전망</span>
+        <h2>바람의 흐름은 지도로, 앞으로의 날씨는 전망으로 확인하세요.</h2>
+        <p class="lead">왼쪽 지도에서는 검색한 도시 주변의 바람과 기압 흐름을 실시간으로 살펴볼 수 있고, 오른쪽 패널에서는 같은 도시의 향후 3일 전망을 요약해 보여줍니다. 두 화면은 관측 대시보드와 함께 보면 계획을 세우기 더 편합니다.</p>
+      </div>
+      <div class="map-grid">
+        <article class="card map-card">
+          <div class="map-frame"><iframe id="windyFrame" title="Windy 실시간 바람 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://embed.windy.com/embed2.html?lat=37.5665&lon=126.978&detailLat=37.5665&detailLon=126.978&width=650&height=450&zoom=6&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1"></iframe></div>
+          <div class="map-foot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3"/><path d="M3 14h15a3 3 0 1 1-3 3"/></svg><span>지도 안에서 확대·축소하며 전 세계 바람, 기압, 강수 흐름을 확인할 수 있습니다. 도시를 검색하면 지도 중심이 그 도시로 이동합니다. 현재 중심: <strong id="mapCenterName">서울</strong></span></div>
+        </article>
+        <article class="card" id="forecastPanel">
+          <span class="eyebrow">3일 전망</span>
+          <h3 style="margin-top:10px"><span id="fcCity">서울</span> 3일 예보</h3>
+          <div class="forecast-list" id="forecastList"><p class="status">3일 예보를 불러오는 중입니다…</p></div>
+          <p class="fc-note" id="fcNote">예보는 검색한 도시 기준으로 제공되며, 대시보드와 함께 갱신됩니다.</p>
+          <a class="btn btn-ghost btn-sm" href="#live" style="margin-top:14px">실시간 관측 대시보드로</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">주요 기능</span>
+        <h2>관측에 필요한 정보를 한 곳에 모았습니다.</h2>
+        <p class="lead">도시별 날씨와 대기질을 동시에 확인하고, 원하는 단위로 즉시 변환해 비교할 수 있습니다.</p>
+      </div>
+      <div class="features">
+        <div class="feature"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></span><h3>전 세계 도시 관측</h3><p>아시아, 유럽, 미주, 오세아니아, 아프리카 주요 도시의 현재 날씨를 한 화면에서 비교합니다.</p></div>
+        <div class="feature"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v5h-5"/></svg></span><h3>자동 갱신</h3><p>검색한 도시의 관측값을 즉시 불러오고, 10분마다 최신 데이터를 다시 확인합니다.</p></div>
+        <div class="feature"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v8"/><path d="M12 12c-2 0-3 1.5-3 4s-1 4-3 4-3-2-3-5"/><path d="M12 12c2 0 3 1.5 3 4s1 4 3 4 3-2 3-5"/></svg></span><h3>대기질 분석</h3><p>AQI와 PM2.5, PM10, 오존, 이산화질소 농도를 함께 보여주어 야외 활동 계획을 돕습니다.</p></div>
+        <div class="feature"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4v9a3 3 0 1 0 2 0V4a1 1 0 0 0-2 0z"/><path d="M15 7h4M15 11h4M15 15h3"/></svg></span><h3>단위 변환</h3><p>섭씨와 화씨를 버튼 한 번으로 전환하고, 선택한 단위를 브라우저에 기억합니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="major-cities">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">주요 관측 도시</span>
+        <div class="row">
+          <h2>대륙별 대표 도시의 현재 기온을 바로 확인하세요.</h2>
+          <a class="btn btn-ghost btn-sm" href="#cities">전체 도시 보기 →</a>
+        </div>
+      </div>
+      <div class="cities" id="homeCities"></div>
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="eyebrow">문의하기</span>
+        <h2>WeatherLog24에 궁금한 점이 있으신가요?</h2>
+        <p class="lead">새로운 도시를 추가하고 싶거나 관측 데이터 활용에 대한 문의가 있다면 아래 양식을 남겨 주세요. 영업일 기준 1일 이내에 답변드립니다.</p>
+      </div>
+      <div class="contact">
+        <div class="info-list">
+          <div class="info"><span class="k">이메일 문의</span><span class="v sel" id="contactEmailText">hello@weatherlog24.com</span></div>
+          <div class="info"><span class="k">도시 추가 요청</span><span class="v">원하는 도시와 국가를 함께 알려 주세요.</span></div>
+          <div class="info"><span class="k">응답 시간</span><span class="v">영업일 기준 1일 이내에 회신드립니다.</span></div>
+        </div>
+        <form class="card" id="contactForm" novalidate>
+          <div class="form-grid">
+            <div class="field"><label for="contactName">이름</label><input id="contactName" name="name" type="text" required placeholder="홍길동"></div>
+            <div class="field"><label for="contactEmail">이메일</label><input id="contactEmail" name="email" type="email" required placeholder="you@example.com"></div>
+            <div class="field full"><label for="contactSubject">문의 유형</label>
+              <select id="contactSubject" name="subject"><option>도시 추가 요청</option><option>데이터 활용 문의</option><option>오류 제보</option><option>기타</option></select></div>
+            <div class="field full"><label for="contactMessage">문의 내용</label><textarea id="contactMessage" name="message" rows="5" required placeholder="문의 내용을 적어 주세요."></textarea></div>
+            <div class="full"><button class="btn btn-primary" type="submit">문의 보내기</button></div>
+          </div>
+          <p class="status" id="contactStatus" role="status" aria-live="polite"></p>
+          <div class="notice" id="contactNotice" hidden>
+            <strong>메일 앱이 열렸습니다.</strong>
+            <span>메일 앱이 열리지 않았다면 아래 버튼으로 문의 내용을 복사한 뒤 <b>hello@weatherlog24.com</b>으로 직접 보내 주세요.</span>
+            <button class="btn btn-ghost btn-sm" type="button" id="contactCopyButton">문의 내용 복사</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ CITIES ============ -->
+<main id="view-cities" data-view="cities" hidden>
+  <section class="hero" style="padding-bottom:20px">
+    <div class="wrap" style="grid-template-columns:1fr">
+      <div class="hero-copy">
+        <span class="eyebrow">도시별 날씨</span>
+        <h1>전 세계 주요 도시의 현재 날씨</h1>
+        <p class="lead">대륙별 대표 도시 10곳의 기온을 실시간으로 확인하세요. 도시 카드를 선택하면 홈 대시보드에서 기온, 습도, 바람, 대기질 상세 값을 볼 수 있습니다.</p>
+        <div class="search-card" style="max-width:520px">
+          <div class="field"><label for="cityFilterInput">도시 검색</label><input id="cityFilterInput" type="search" placeholder="도시나 국가 이름으로 걸러 보기"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:20px">
+    <div class="wrap">
+      <div class="cities" id="allCities"></div>
+      <p class="empty" id="cityEmpty" hidden>조건에 맞는 도시가 없습니다. 다른 검색어를 입력해 보세요.</p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ ABOUT ============ -->
+<main id="view-about" data-view="about" hidden>
+  <section class="hero" style="padding-bottom:20px">
+    <div class="wrap" style="grid-template-columns:1fr">
+      <div class="hero-copy">
+        <span class="eyebrow">서비스 소개</span>
+        <h1>날씨를 기록하고, 비교하고, 대비합니다.</h1>
+        <p class="lead">WeatherLog24는 대륙별 주요 도시의 관측값을 같은 형식으로 정리해 보여주는 글로벌 날씨 추적 서비스입니다. 기온과 바람, 대기질을 한 화면에서 비교해 여행, 출장, 야외 활동 계획을 세울 수 있습니다.</p>
+        <div class="stats">
+          <div class="stat"><span class="k">관측 도시</span><span class="v">10곳</span></div>
+          <div class="stat"><span class="k">커버 대륙</span><span class="v">6개</span></div>
+          <div class="stat"><span class="k">자동 갱신</span><span class="v">10분</span></div>
+          <div class="stat"><span class="k">대기질 지표</span><span class="v">5종</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head"><span class="eyebrow">이용 방법</span><h2>세 단계로 전 세계 날씨를 확인합니다.</h2></div>
+      <div class="steps">
+        <div class="step"><span class="n">01</span><h3>도시 검색</h3><p>도시 이름과 국가를 입력하거나, 주요 관측 도시 카드에서 원하는 도시를 선택합니다.</p></div>
+        <div class="step"><span class="n">02</span><h3>실시간 관측</h3><p>기온, 체감온도, 최저·최고 기온, 습도, 구름량, 풍속과 풍향을 동시에 불러옵니다.</p></div>
+        <div class="step"><span class="n">03</span><h3>대기질 확인</h3><p>AQI와 PM2.5, PM10, 오존, 이산화질소 농도를 함께 확인해 야외 활동을 계획합니다.</p></div>
+      </div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head"><span class="eyebrow">자주 묻는 질문</span><h2>관측에 대해 자주 받는 질문</h2></div>
+      <div class="faq">
+        <details><summary>날씨 데이터는 얼마나 자주 갱신되나요?</summary><p>검색한 도시와 주요 관측 도시의 값은 페이지를 열어 둔 동안 10분마다 자동으로 다시 불러옵니다. 새로고침 버튼을 누르면 즉시 갱신됩니다.</p></details>
+        <details><summary>도시 이름만 입력해도 되나요?</summary><p>네. 한글 또는 영문 도시 이름만으로 검색할 수 있습니다. 같은 이름의 도시가 여러 나라에 있다면 국가 칸에 나라 이름을 함께 적어 주세요.</p></details>
+        <details><summary>대기질 지수는 어떤 기준인가요?</summary><p>미국 환경보호청(EPA) 기준 AQI를 사용합니다. 0~50은 좋음, 51~100은 보통, 101~150은 민감군 주의, 151~200은 나쁨, 201 이상은 매우 나쁨으로 표시합니다.</p></details>
+        <details><summary>섭씨와 화씨를 모두 볼 수 있나요?</summary><p>대시보드 상단의 단위 버튼으로 섭씨와 화씨를 전환할 수 있으며, 선택한 단위는 브라우저에 저장되어 다음 방문에도 유지됩니다.</p></details>
+        <details><summary>목록에 없는 도시를 추가할 수 있나요?</summary><p>검색창에서는 전 세계 어느 도시든 바로 찾을 수 있습니다. 주요 관측 도시 목록에 추가를 원하시면 문의하기 양식으로 도시와 국가를 알려 주세요.</p></details>
+        <details><summary>풍향은 어떻게 표시되나요?</summary><p>바람이 불어오는 방향을 16방위(북, 북북동, 북동 등)와 화살표로 표시하고, 풍속은 초속(m/s)으로 보여줍니다.</p></details>
+      </div>
+    </div>
+  </section>
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="cta">
+        <span class="eyebrow" style="color:inherit">지금 시작하기</span>
+        <h2>도시 이름 하나면 관측이 시작됩니다.</h2>
+        <p class="lead">홈에서 도시를 검색하거나 관측 도시 목록에서 원하는 곳을 선택해 실시간 관측값을 확인하세요.</p>
+        <div class="btns"><a class="btn btn-primary" href="#live">실시간 대시보드 열기</a><a class="btn btn-ghost" href="#cities">관측 도시 목록 보기</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <span class="brand"><strong>WeatherLog24</strong><small>· 실시간 날씨 관측 ·</small></span>
+      <p style="margin-top:12px;max-width:40ch">전 세계 주요 도시의 기온, 습도, 바람, 대기질을 실시간으로 수집해 한 화면에서 비교할 수 있도록 정리합니다.</p>
+    </div>
+    <div>
+      <h4>바로가기</h4>
+      <ul><li><a href="#home">홈</a></li><li><a href="#live">실시간 관측</a></li><li><a href="#livemap">실시간 지도</a></li><li><a href="#cities">도시별 날씨</a></li><li><a href="#about">서비스 소개</a></li><li><a href="#contact">문의하기</a></li></ul>
+    </div>
+    <div>
+      <h4>관측 안내</h4>
+      <ul><li>관측값은 10분마다 자동으로 갱신됩니다.</li><li>대기질 지수는 미국 EPA AQI 기준입니다.</li><li>문의: hello@weatherlog24.com</li></ul>
+    </div>
+    <div class="copy"><span>© 2026 WeatherLog24. All rights reserved.</span><span>날씨·대기질 데이터 <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open‑Meteo</a> · 지도 <a href="https://www.windy.com/" target="_blank" rel="noopener">Windy</a></span></div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- data ---------- */
+  var CITIES = [
+    { id: 'newyork',  name: '뉴욕',     en: 'New York',  country: '미국',           cc: 'US', lat: 40.7128,  lon: -74.0060, continent: '북미',     desc: '대서양과 맞닿은 미국 동부의 중심지로 겨울 한파와 여름 폭염이 뚜렷합니다.' },
+    { id: 'tokyo',    name: '도쿄',     en: 'Tokyo',     country: '일본',           cc: 'JP', lat: 35.6762,  lon: 139.6503, continent: '아시아',   desc: '태평양 연안에 자리한 대도시로 여름 장마와 태풍의 영향을 자주 받습니다.' },
+    { id: 'london',   name: '런던',     en: 'London',    country: '영국',           cc: 'GB', lat: 51.5074,  lon: -0.1278,  continent: '유럽',     desc: '해양성 기후로 하루 안에도 날씨가 자주 바뀌는 서유럽 대표 도시입니다.' },
+    { id: 'seoul',    name: '서울',     en: 'Seoul',     country: '대한민국',       cc: 'KR', lat: 37.5665,  lon: 126.9780, continent: '아시아',   desc: '한강을 따라 펼쳐진 대도시로 사계절의 변화가 뚜렷한 동아시아 관측 거점입니다.' },
+    { id: 'paris',    name: '파리',     en: 'Paris',     country: '프랑스',         cc: 'FR', lat: 48.8566,  lon: 2.3522,   continent: '유럽',     desc: '대륙성과 해양성 기후가 만나는 지점으로 봄과 가을이 온화합니다.' },
+    { id: 'dubai',    name: '두바이',   en: 'Dubai',     country: '아랍에미리트',   cc: 'AE', lat: 25.2048,  lon: 55.2708,  continent: '중동',     desc: '사막 기후로 여름에는 40도를 넘고 강수량이 매우 적습니다.' },
+    { id: 'sydney',   name: '시드니',   en: 'Sydney',    country: '호주',           cc: 'AU', lat: -33.8688, lon: 151.2093, continent: '오세아니아', desc: '남반구에 위치해 계절이 반대로 흐르는 오세아니아 핵심 도시입니다.' },
+    { id: 'saopaulo', name: '상파울루', en: 'São Paulo', country: '브라질',         cc: 'BR', lat: -23.5505, lon: -46.6333, continent: '남미',     desc: '고지대에 자리해 위도에 비해 기온이 낮고 강수가 잦습니다.' },
+    { id: 'singapore',name: '싱가포르', en: 'Singapore', country: '싱가포르',       cc: 'SG', lat: 1.3521,   lon: 103.8198, continent: '아시아',   desc: '적도에 가까워 연중 고온다습하며 오후 스콜이 자주 발생합니다.' },
+    { id: 'capetown', name: '케이프타운', en: 'Cape Town', country: '남아프리카공화국', cc: 'ZA', lat: -33.9249, lon: 18.4241, continent: '아프리카', desc: '지중해성 기후로 겨울에 비가 집중되고 바람이 강합니다.' }
+  ];
+  var HOME_CITY_IDS = ['newyork', 'tokyo', 'london', 'seoul', 'paris', 'dubai'];
+
+  var WMO = {
+    0: ['맑음', 'clear'], 1: ['대체로 맑음', 'clear'], 2: ['구름 조금', 'partly'], 3: ['흐림', 'cloud'],
+    45: ['안개', 'fog'], 48: ['서리 안개', 'fog'],
+    51: ['약한 이슬비', 'drizzle'], 53: ['이슬비', 'drizzle'], 55: ['강한 이슬비', 'drizzle'], 56: ['어는 이슬비', 'drizzle'], 57: ['강한 어는 이슬비', 'drizzle'],
+    61: ['약한 비', 'rain'], 63: ['비', 'rain'], 65: ['강한 비', 'rain'], 66: ['어는 비', 'rain'], 67: ['강한 어는 비', 'rain'],
+    71: ['약한 눈', 'snow'], 73: ['눈', 'snow'], 75: ['강한 눈', 'snow'], 77: ['싸락눈', 'snow'],
+    80: ['약한 소나기', 'rain'], 81: ['소나기', 'rain'], 82: ['강한 소나기', 'rain'], 85: ['소낙눈', 'snow'], 86: ['강한 소낙눈', 'snow'],
+    95: ['뇌우', 'thunder'], 96: ['우박 동반 뇌우', 'thunder'], 99: ['강한 우박 동반 뇌우', 'thunder']
+  };
+  var DIRS = ['북', '북북동', '북동', '동북동', '동', '동남동', '남동', '남남동', '남', '남남서', '남서', '서남서', '서', '서북서', '북서', '북북서'];
+  var WEEK = ['일', '월', '화', '수', '목', '금', '토'];
+  var REFRESH_MS = 10 * 60 * 1000;
+
+  /* ---------- icons ---------- */
+  function icon(kind, isDay) {
+    var s = 'viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+    var sun = '<circle cx="24" cy="24" r="8"/><path d="M24 6v5M24 37v5M6 24h5M37 24h5M11.3 11.3l3.5 3.5M33.2 33.2l3.5 3.5M11.3 36.7l3.5-3.5M33.2 14.8l3.5-3.5"/>';
+    var moon = '<path d="M30 8a15 15 0 1 0 10 26A12.5 12.5 0 0 1 30 8z"/>';
+    var cloud = '<path d="M15 36a7 7 0 0 1-.9-13.9A10 10 0 0 1 33.5 24 6 6 0 0 1 33 36H15z"/>';
+    var cloudSmall = '<path d="M19 40a6 6 0 0 1-.7-12 8.5 8.5 0 0 1 16.4 1.5A5 5 0 0 1 34 40H19z"/>';
+    var rain = '<path d="M17 40l-2 4M25 40l-2 4M33 40l-2 4"/>';
+    var snow = '<path d="M17 41h.01M25 41h.01M33 41h.01M21 45h.01M29 45h.01" stroke-width="3.2"/>';
+    var bolt = '<path d="M26 34l-4 8h5l-3 6"/>';
+    var fog = '<path d="M8 30h32M12 36h24M16 42h16"/>';
+    var body;
+    switch (kind) {
+      case 'clear': body = isDay ? sun : moon; break;
+      case 'partly': body = (isDay ? '<circle cx="18" cy="16" r="6"/><path d="M18 5v3M7 16h3M10.2 8.2l2.1 2.1"/>' : '<path d="M19 5a8 8 0 1 0 7 13A7 7 0 0 1 19 5z"/>') + cloudSmall; break;
+      case 'cloud': body = cloud; break;
+      case 'fog': body = fog; break;
+      case 'drizzle': body = '<path d="M15 30a7 7 0 0 1-.9-13.9A10 10 0 0 1 33.5 18 6 6 0 0 1 33 30H15z"/>' + '<path d="M18 36l-1 2M26 36l-1 2M34 36l-1 2"/>'; break;
+      case 'rain': body = '<path d="M15 30a7 7 0 0 1-.9-13.9A10 10 0 0 1 33.5 18 6 6 0 0 1 33 30H15z"/>' + rain.replace(/40/g, '34').replace(/44/g, '40'); break;
+      case 'snow': body = '<path d="M15 30a7 7 0 0 1-.9-13.9A10 10 0 0 1 33.5 18 6 6 0 0 1 33 30H15z"/>' + snow.replace(/41/g, '36').replace(/45/g, '42'); break;
+      case 'thunder': body = '<path d="M15 30a7 7 0 0 1-.9-13.9A10 10 0 0 1 33.5 18 6 6 0 0 1 33 30H15z"/>' + bolt; break;
+      default: body = cloud;
+    }
+    return '<svg ' + s + ' aria-hidden="true">' + body + '</svg>';
+  }
+  function skyKey(kind, isDay) {
+    var g = (kind === 'clear' || kind === 'partly') ? 'clear' : (kind === 'snow') ? 'snow' : (kind === 'rain' || kind === 'drizzle' || kind === 'thunder') ? 'rain' : 'cloud';
+    return (isDay ? 'day-' : 'night-') + g;
+  }
+
+  /* ---------- state ---------- */
+  var state = {
+    unit: 'celsius',
+    current: null,     // {name, country, lat, lon}
+    weather: null,     // forecast payload
+    air: null,         // air quality payload
+    cards: {},         // id -> {temp, code, isDay, tz}
+    lastUpdate: null,
+    timer: null,
+    busy: false
+  };
+  try { var u = localStorage.getItem('wl24_unit'); if (u === 'fahrenheit' || u === 'celsius') state.unit = u; } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmtTemp(c, withUnit) {
+    if (c == null || isNaN(c)) return '—';
+    var v = state.unit === 'fahrenheit' ? c * 9 / 5 + 32 : c;
+    return Math.round(v) + '°' + (withUnit ? (state.unit === 'fahrenheit' ? 'F' : 'C') : '');
+  }
+  function unitLabel() { return state.unit === 'fahrenheit' ? '°F' : '°C'; }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function hhmm(d) { return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function localTime(tz) {
+    try { return new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz }).format(new Date()); }
+    catch (e) { return '—'; }
+  }
+  function setStatus(msg, isError) {
+    var el = $('weatherStatus'); el.textContent = msg || ''; el.classList.toggle('error', !!isError);
+  }
+  function toast(msg) {
+    var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+
+  /* ---------- fetch helpers ---------- */
+  function getJSON(url, timeoutMs) {
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs || 12000) : null;
+    return fetch(url, ctrl ? { signal: ctrl.signal } : {}).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).finally(function () { if (timer) clearTimeout(timer); });
+  }
+  function forecastURL(lat, lon) {
+    return 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,weather_code,is_day,precipitation' +
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum' +
+      '&wind_speed_unit=ms&timezone=auto&forecast_days=3';
+  }
+  function airURL(lat, lon) {
+    return 'https://air-quality-api.open-meteo.com/v1/air-quality?latitude=' + lat + '&longitude=' + lon +
+      '&current=us_aqi,pm2_5,pm10,ozone,nitrogen_dioxide&timezone=auto';
+  }
+  function cardsURL(list) {
+    return 'https://api.open-meteo.com/v1/forecast?latitude=' + list.map(function (c) { return c.lat; }).join(',') +
+      '&longitude=' + list.map(function (c) { return c.lon; }).join(',') +
+      '&current=temperature_2m,weather_code,is_day&timezone=auto';
+  }
+  function geocodeURL(q, lang) {
+    return 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=10&language=' + lang + '&format=json';
+  }
+
+  /* ---------- geocoding ---------- */
+  // 두 글자 한글 지명은 검색 엔진이 완전 일치만 허용하므로, 자주 찾는 도시는 영문 이름으로 먼저 찾습니다.
+  var ALIAS = {
+    '부산': 'Busan', '대구': 'Daegu', '인천': 'Incheon', '광주': 'Gwangju', '대전': 'Daejeon', '울산': 'Ulsan', '세종': 'Sejong', '수원': 'Suwon',
+    '창원': 'Changwon', '고양': 'Goyang', '용인': 'Yongin', '성남': 'Seongnam', '청주': 'Cheongju', '전주': 'Jeonju', '천안': 'Cheonan', '포항': 'Pohang',
+    '제주': 'Jeju City', '서귀포': 'Seogwipo', '강릉': 'Gangneung', '춘천': 'Chuncheon', '여수': 'Yeosu', '김해': 'Gimhae', '안산': 'Ansan', '안양': 'Anyang',
+    '부천': 'Bucheon', '평택': 'Pyeongtaek', '경주': 'Gyeongju', '목포': 'Mokpo', '순천': 'Suncheon', '원주': 'Wonju', '구미': 'Gumi', '속초': 'Sokcho',
+    '김포': 'Gimpo', '파주': 'Paju', '남양주': 'Namyangju', '화성': 'Hwaseong', '진주': 'Jinju', '통영': 'Tongyeong', '거제': 'Geoje', '동해': 'Donghae',
+    '오사카': 'Osaka', '교토': 'Kyoto', '나고야': 'Nagoya', '후쿠오카': 'Fukuoka', '삿포로': 'Sapporo', '오키나와': 'Naha', '나하': 'Naha', '고베': 'Kobe',
+    '요코하마': 'Yokohama', '히로시마': 'Hiroshima', '센다이': 'Sendai', '나가사키': 'Nagasaki', '가고시마': 'Kagoshima', '다카마쓰': 'Takamatsu', '타카마쓰': 'Takamatsu',
+    '베이징': 'Beijing', '북경': 'Beijing', '상하이': 'Shanghai', '상해': 'Shanghai', '홍콩': 'Hong Kong', '마카오': 'Macau', '타이베이': 'Taipei', '대만': 'Taipei',
+    '방콕': 'Bangkok', '하노이': 'Hanoi', '다낭': 'Da Nang', '호치민': 'Ho Chi Minh City', '나트랑': 'Nha Trang', '마닐라': 'Manila', '세부': 'Cebu City',
+    '보라카이': 'Boracay', '쿠알라룸푸르': 'Kuala Lumpur', '코타키나발루': 'Kota Kinabalu', '자카르타': 'Jakarta', '발리': 'Denpasar', '푸껫': 'Phuket', '푸켓': 'Phuket',
+    '델리': 'Delhi', '뭄바이': 'Mumbai', '이스탄불': 'Istanbul', '모스크바': 'Moscow', '베를린': 'Berlin', '뮌헨': 'Munich', '로마': 'Rome', '밀라노': 'Milan',
+    '마드리드': 'Madrid', '바르셀로나': 'Barcelona', '리스본': 'Lisbon', '암스테르담': 'Amsterdam', '프라하': 'Prague', '빈': 'Vienna', '취리히': 'Zurich',
+    '아테네': 'Athens', '스톡홀름': 'Stockholm', '코펜하겐': 'Copenhagen', '오슬로': 'Oslo', '헬싱키': 'Helsinki', '더블린': 'Dublin', '브뤼셀': 'Brussels',
+    '로스앤젤레스': 'Los Angeles', 'la': 'Los Angeles', '샌프란시스코': 'San Francisco', '시카고': 'Chicago', '라스베이거스': 'Las Vegas', '시애틀': 'Seattle',
+    '보스턴': 'Boston', '워싱턴': 'Washington', '마이애미': 'Miami', '토론토': 'Toronto', '밴쿠버': 'Vancouver', '멕시코시티': 'Mexico City', '하와이': 'Honolulu',
+    '호놀룰루': 'Honolulu', '괌': 'Tamuning', '사이판': 'Saipan', '멜버른': 'Melbourne', '오클랜드': 'Auckland', '카이로': 'Cairo', '나이로비': 'Nairobi',
+    '부에노스아이레스': 'Buenos Aires', '리우': 'Rio de Janeiro', '리우데자네이루': 'Rio de Janeiro', '도하': 'Doha', '아부다비': 'Abu Dhabi', '텔아비브': 'Tel Aviv'
+  };
+  function norm(s) { return (s || '').trim().toLowerCase().replace(/\s+/g, ''); }
+  function findKnown(q, country) {
+    var n = norm(q);
+    for (var i = 0; i < CITIES.length; i++) {
+      var c = CITIES[i];
+      if (n === c.name || n === norm(c.en)) {
+        if (!country || countryMatches(c.country, c.cc, country)) return c;
+      }
+    }
+    return null;
+  }
+  function countryMatches(rc, cc, wanted) {
+    var k = norm(wanted); if (!k) return true;
+    rc = norm(rc); cc = norm(cc);
+    return (rc && (rc.indexOf(k) >= 0 || k.indexOf(rc) >= 0)) || (cc && cc === k);
+  }
+  function score(r) {
+    var fc = r.feature_code || '';
+    var base = fc.indexOf('PPL') === 0 ? 1e9 : 0;
+    if (fc === 'PPLC') base += 5e8; else if (fc === 'PPLA') base += 3e8; else if (fc === 'PPLA2') base += 1e8;
+    return base + (r.population || 0);
+  }
+  function geocode(q, country) {
+    var known = findKnown(q, country);
+    if (known) return Promise.resolve({ name: known.name, country: known.country, lat: known.lat, lon: known.lon });
+    var tries = [], alias = ALIAS[norm(q)];
+    if (alias) tries.push([alias, 'ko']);
+    tries.push([q, 'ko']);
+    if (/^[가-힣]{2}$/.test(q.trim())) { tries.push([q.trim() + '시', 'ko']); tries.push([q.trim() + '광역시', 'ko']); }
+    if (!/[가-힣]/.test(q)) tries.push([q, 'en']);
+    return Promise.all(tries.map(function (t) {
+      return getJSON(geocodeURL(t[0], t[1])).then(function (d) { return d.results || []; }).catch(function () { return []; });
+    })).then(function (lists) {
+      var all = [].concat.apply([], lists);
+      if (!all.length) { var e = new Error('notfound'); e.code = 'notfound'; throw e; }
+      var pool = country ? all.filter(function (r) { return countryMatches(r.country, r.country_code, country); }) : all;
+      var note = '';
+      if (!pool.length) { pool = all; note = '입력한 국가에서는 찾지 못해 가장 가까운 결과를 보여줍니다.'; }
+      var best = pool[0];
+      for (var i = 1; i < pool.length; i++) if (score(pool[i]) > score(best)) best = pool[i];
+      var name = (best.name || '').replace(/\s+시$/, '');
+      var admin = best.admin1 && best.admin1 !== best.name ? ' · ' + best.admin1 : '';
+      return { name: name, country: (best.country || best.country_code || '') + admin, lat: best.latitude, lon: best.longitude, note: note };
+    });
+  }
+
+  /* ---------- dashboard render ---------- */
+  function renderCurrent() {
+    var w = state.weather, cur = state.current;
+    if (!w || !cur) return;
+    var c = w.current, d = w.daily;
+    var meta = WMO[c.weather_code] || ['관측', 'cloud'];
+    $('curCity').textContent = cur.name;
+    $('curCountry').textContent = cur.country || '';
+    $('curLocalTime').textContent = localTime(w.timezone);
+    $('curTemp').textContent = fmtTemp(c.temperature_2m, false).replace('°', '');
+    $('curUnit').textContent = unitLabel();
+    $('curIcon').innerHTML = icon(meta[1], c.is_day === 1);
+    $('curCond').textContent = meta[0] + (c.precipitation > 0 ? ' · 강수 ' + c.precipitation + 'mm' : '');
+    $('curFeel').textContent = fmtTemp(c.apparent_temperature, true);
+    $('curMinMax').textContent = fmtTemp(d.temperature_2m_min[0], false) + ' / ' + fmtTemp(d.temperature_2m_max[0], false);
+    $('curHumidity').textContent = Math.round(c.relative_humidity_2m) + '%';
+    $('curClouds').textContent = Math.round(c.cloud_cover) + '%';
+    var dir = c.wind_direction_10m, di = Math.round(dir / 22.5) % 16;
+    $('curWind').innerHTML = '<svg class="wind-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(' + Math.round(dir + 180) + 'deg)" aria-hidden="true"><path d="M12 4v16M6 10l6-6 6 6"/></svg>' +
+      '<span class="num">' + c.wind_speed_10m.toFixed(1) + '</span><small>m/s · ' + DIRS[di] + (c.wind_gusts_10m ? ' · 돌풍 ' + c.wind_gusts_10m.toFixed(1) : '') + '</small>';
+    $('curStamp').textContent = hhmm(state.lastUpdate || new Date()) + ' 갱신';
+    $('heroCity').textContent = cur.name; $('heroTemp').textContent = fmtTemp(c.temperature_2m, true); $('heroCond').textContent = meta[0];
+  }
+  function aqLevel(v) {
+    if (v == null) return ['정보 없음', ''];
+    if (v <= 50) return ['좋음', 'good'];
+    if (v <= 100) return ['보통', 'moderate'];
+    if (v <= 150) return ['민감군 주의', 'usg'];
+    if (v <= 200) return ['나쁨', 'bad'];
+    if (v <= 300) return ['매우 나쁨', 'vbad'];
+    return ['위험', 'haz'];
+  }
+  function ug(v) { return v == null ? '—' : '<span class="num">' + Math.round(v) + '</span><small>μg/m³</small>'; }
+  function renderAir() {
+    var a = state.air && state.air.current;
+    var v = a ? a.us_aqi : null;
+    var lv = aqLevel(v);
+    $('aqValue').textContent = v == null ? '—' : Math.round(v);
+    var pill = $('aqLabel'); pill.textContent = lv[0]; pill.setAttribute('data-level', lv[1]);
+    $('aqMarker').style.left = (v == null ? 0 : Math.min(100, v / 300 * 100 * (v <= 300 ? 1 : 1))) + '%';
+    if (v != null && v > 300) $('aqMarker').style.left = '100%';
+    $('aqPm25').innerHTML = ug(a && a.pm2_5); $('aqPm10').innerHTML = ug(a && a.pm10);
+    $('aqO3').innerHTML = ug(a && a.ozone); $('aqNo2').innerHTML = ug(a && a.nitrogen_dioxide);
+  }
+  function renderForecast() {
+    var w = state.weather, cur = state.current;
+    var list = $('forecastList');
+    if (!w || !cur) { list.innerHTML = '<p class="status error">3일 예보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>'; return; }
+    $('fcCity').textContent = cur.name;
+    var d = w.daily, html = '';
+    for (var i = 0; i < d.time.length; i++) {
+      var p = d.time[i].split('-'), dt = new Date(+p[0], +p[1] - 1, +p[2]);
+      var meta = WMO[d.weather_code[i]] || ['—', 'cloud'];
+      var label = i === 0 ? '오늘' : i === 1 ? '내일' : '모레';
+      html += '<div class="day">' +
+        '<span class="d">' + label + '<small>' + (+p[1]) + '/' + (+p[2]) + ' (' + WEEK[dt.getDay()] + ')</small></span>' +
+        '<span class="mid"><span class="ic">' + icon(meta[1], true) + '</span><span class="c">' + meta[0] +
+        (d.precipitation_probability_max[i] != null ? '<br>강수확률 ' + d.precipitation_probability_max[i] + '%' : '') + '</span></span>' +
+        '<span class="t num">' + fmtTemp(d.temperature_2m_max[i], false) + '<small>최저 ' + fmtTemp(d.temperature_2m_min[i], false) + '</small></span>' +
+        '</div>';
+    }
+    list.innerHTML = html;
+  }
+  function updateMap() {
+    var cur = state.current; if (!cur) return;
+    var f = $('windyFrame');
+    var src = 'https://embed.windy.com/embed2.html?lat=' + cur.lat + '&lon=' + cur.lon + '&detailLat=' + cur.lat + '&detailLon=' + cur.lon +
+      '&width=650&height=450&zoom=6&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1';
+    if (f.getAttribute('src') !== src) f.setAttribute('src', src);
+    $('mapCenterName').textContent = cur.name;
+  }
+
+  /* ---------- load a city ---------- */
+  function loadCity(place, quiet) {
+    if (state.busy) return Promise.resolve();
+    state.busy = true;
+    if (!quiet) setStatus(place.name + ' 관측값을 불러오는 중입니다…');
+    return Promise.all([getJSON(forecastURL(place.lat, place.lon)), getJSON(airURL(place.lat, place.lon)).catch(function () { return null; })])
+      .then(function (res) {
+        state.current = place; state.weather = res[0]; state.air = res[1]; state.lastUpdate = new Date();
+        renderCurrent(); renderAir(); renderForecast(); updateMap();
+        setStatus((place.note ? place.note + ' ' : '') + '마지막 갱신 ' + hhmm(state.lastUpdate) + ' · 10분마다 자동 갱신' + (res[1] ? '' : ' · 대기질 정보를 가져오지 못했습니다'));
+        highlightQuick(place.name);
+      })
+      .catch(function (err) {
+        setStatus('관측값을 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 새로고침을 눌러 주세요. (' + (err && err.message || '오류') + ')', true);
+      })
+      .finally(function () { state.busy = false; });
+  }
+  function runSearch(q, country) {
+    q = (q || '').trim(); country = (country || '').trim();
+    if (q.length < 2) { setStatus('도시 이름을 두 글자 이상 입력해 주세요.', true); return; }
+    setStatus('"' + q + '" 도시를 찾는 중입니다…');
+    $('weatherSearchButton').disabled = true;
+    geocode(q, country).then(function (place) {
+      return loadCity(place);
+    }).catch(function (err) {
+      if (err && err.code === 'country') setStatus('"' + q + '"은(는) 찾았지만 입력한 국가와 맞지 않습니다. 국가 칸을 비우거나 다시 확인해 주세요.', true);
+      else if (err && err.code === 'notfound') setStatus('해당 도시의 관측값을 찾을 수 없습니다. 도시 이름과 국가를 다시 확인해 주세요.', true);
+      else setStatus('도시를 검색하지 못했습니다. 잠시 후 다시 시도해 주세요. (' + (err && err.message || '오류') + ')', true);
+    }).finally(function () { $('weatherSearchButton').disabled = false; });
+    location.hash === '#live' || document.getElementById('live').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function highlightQuick(name) {
+    var chips = document.querySelectorAll('#quickPicks .chip');
+    for (var i = 0; i < chips.length; i++) chips[i].setAttribute('aria-pressed', chips[i].getAttribute('data-city') === name ? 'true' : 'false');
+  }
+
+  /* ---------- city cards ---------- */
+  function cardHTML(c) {
+    return '<article class="city" data-id="' + c.id + '" data-search="' + esc((c.name + ' ' + c.en + ' ' + c.country + ' ' + c.continent).toLowerCase()) + '">' +
+      '<div class="city-sky" data-sky="day-cloud" id="sky-' + c.id + '"><span class="ic" id="ic-' + c.id + '"></span><span class="tchip num" id="t-' + c.id + '">—</span><span class="time num" id="tm-' + c.id + '"></span></div>' +
+      '<div class="city-body"><span class="country"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>' + esc(c.country) + ' · ' + esc(c.continent) + '</span>' +
+      '<h3>' + esc(c.name) + '</h3><span class="cond" id="c-' + c.id + '">현재 날씨를 불러오는 중…</span><p>' + esc(c.desc) + '</p>' +
+      '<button class="btn btn-ghost btn-sm btn-block" type="button" data-observe="' + c.id + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>이 도시 관측하기</button></div></article>';
+  }
+  function renderCardLists() {
+    $('homeCities').innerHTML = HOME_CITY_IDS.map(function (id) { return cardHTML(CITIES.filter(function (c) { return c.id === id; })[0]); }).join('');
+    $('allCities').innerHTML = CITIES.map(cardHTML).join('');
+  }
+  function paintCards() {
+    CITIES.forEach(function (c) {
+      var d = state.cards[c.id]; if (!d) return;
+      var meta = WMO[d.code] || ['—', 'cloud'];
+      ['home', 'all'].forEach(function () {});
+      var nodes = document.querySelectorAll('[data-id="' + c.id + '"]');
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        n.querySelector('.tchip').textContent = fmtTemp(d.temp, false);
+        n.querySelector('.city-sky').setAttribute('data-sky', skyKey(meta[1], d.isDay));
+        n.querySelector('.city-sky .ic').innerHTML = icon(meta[1], d.isDay);
+        n.querySelector('.time').textContent = '현지 ' + localTime(d.tz);
+        n.querySelector('.cond').textContent = meta[0] + ' · ' + (d.isDay ? '낮' : '밤');
+      }
+    });
+  }
+  function refreshCards() {
+    return getJSON(cardsURL(CITIES)).then(function (data) {
+      var arr = Array.isArray(data) ? data : [data];
+      arr.forEach(function (w, i) {
+        var c = CITIES[i]; if (!c || !w || !w.current) return;
+        state.cards[c.id] = { temp: w.current.temperature_2m, code: w.current.weather_code, isDay: w.current.is_day === 1, tz: w.timezone };
+      });
+      paintCards();
+    }).catch(function () {
+      var conds = document.querySelectorAll('.city .cond');
+      for (var i = 0; i < conds.length; i++) if (conds[i].textContent.indexOf('불러오는') >= 0) conds[i].textContent = '현재 날씨를 가져오지 못했습니다';
+    });
+  }
+  function filterCities(q) {
+    q = (q || '').trim().toLowerCase();
+    var cards = document.querySelectorAll('#allCities .city'), shown = 0;
+    for (var i = 0; i < cards.length; i++) {
+      var ok = !q || cards[i].getAttribute('data-search').indexOf(q) >= 0;
+      cards[i].hidden = !ok; if (ok) shown++;
+    }
+    $('cityEmpty').hidden = shown > 0;
+  }
+
+  /* ---------- refresh all ---------- */
+  function refreshAll(quiet) {
+    var p = [refreshCards()];
+    if (state.current) p.push(loadCity(state.current, quiet));
+    return Promise.all(p);
+  }
+  function scheduleRefresh() {
+    if (state.timer) clearInterval(state.timer);
+    state.timer = setInterval(function () { if (!document.hidden) refreshAll(true); }, REFRESH_MS);
+  }
+
+  /* ---------- units ---------- */
+  function setUnit(unit) {
+    state.unit = unit;
+    try { localStorage.setItem('wl24_unit', unit); } catch (e) {}
+    $('unitC').setAttribute('aria-pressed', unit === 'celsius' ? 'true' : 'false');
+    $('unitF').setAttribute('aria-pressed', unit === 'fahrenheit' ? 'true' : 'false');
+    renderCurrent(); renderForecast(); paintCards();
+  }
+
+  /* ---------- routing ---------- */
+  var VIEWS = ['home', 'cities', 'about'];
+  function route() {
+    var h = (location.hash || '').replace('#', '');
+    var view = VIEWS.indexOf(h) >= 0 ? h : 'home';
+    var anchor = VIEWS.indexOf(h) >= 0 || !h ? null : h;
+    VIEWS.forEach(function (v) { $('view-' + v).hidden = v !== view; });
+    var links = document.querySelectorAll('.nav a[data-nav]');
+    for (var i = 0; i < links.length; i++) {
+      if (links[i].getAttribute('data-nav') === view) links[i].setAttribute('aria-current', 'page'); else links[i].removeAttribute('aria-current');
+    }
+    closeNav();
+    if (anchor) {
+      var el = $(anchor);
+      if (el) requestAnimationFrame(function () { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }
+  function openNav() { $('navOverlay').hidden = false; $('navOpenButton').setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; }
+  function closeNav() { $('navOverlay').hidden = true; $('navOpenButton').setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+
+  /* ---------- contact ---------- */
+  function contactPayload() {
+    return '이름: ' + $('contactName').value.trim() + '\n이메일: ' + $('contactEmail').value.trim() + '\n문의 유형: ' + $('contactSubject').value + '\n\n' + $('contactMessage').value.trim();
+  }
+  function handleContact(e) {
+    e.preventDefault();
+    var st = $('contactStatus');
+    var name = $('contactName').value.trim(), email = $('contactEmail').value.trim(), msg = $('contactMessage').value.trim();
+    if (!name || !email || !msg) { st.textContent = '이름, 이메일, 문의 내용을 모두 적어 주세요.'; st.classList.add('error'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { st.textContent = '이메일 주소 형식을 확인해 주세요.'; st.classList.add('error'); return; }
+    st.textContent = ''; st.classList.remove('error');
+    var subject = '[WeatherLog24] ' + $('contactSubject').value + ' - ' + name;
+    var href = 'mailto:hello@weatherlog24.com?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(contactPayload());
+    $('contactNotice').hidden = false;
+    window.location.href = href;
+  }
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { toast('복사했습니다'); }).catch(function () { fallbackCopy(text); });
+    }
+    fallbackCopy(text);
+  }
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('복사했습니다'); } catch (e) { toast('복사하지 못했습니다. 직접 선택해 복사해 주세요.'); }
+    ta.remove();
+  }
+
+  /* ---------- hero wind canvas ---------- */
+  function startWind() {
+    var cv = $('windCanvas'); if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d'), W, H, parts = [], reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function resize() {
+      var r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = cv.width = Math.max(1, Math.round(r.width * dpr)); H = cv.height = Math.max(1, Math.round(r.height * dpr));
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      parts = []; for (var i = 0; i < 220; i++) parts.push(spawn(true));
+      ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.clearRect(0, 0, W, H);
+    }
+    function spawn(any) { return { x: Math.random() * W, y: Math.random() * H, life: any ? Math.random() * 160 : 0, max: 120 + Math.random() * 160 }; }
+    function field(x, y, t) {
+      var nx = x / W, ny = y / H;
+      return Math.sin(ny * 4.2 + t * .35) * .9 + Math.cos(nx * 3.1 - t * .22) * .7 + Math.sin((nx + ny) * 2.3 + t * .15) * .5;
+    }
+    var t = 0, last = 0;
+    function frame(ts) {
+      if (ts - last < 33) { requestAnimationFrame(frame); return; }
+      last = ts; t += .016;
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.fillStyle = 'rgba(0,0,0,.035)'; ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = Math.max(1.2, W / 420); ctx.lineCap = 'round';
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i], a = field(p.x, p.y, t), sp = W / 260;
+        var nx = p.x + Math.cos(a) * sp, ny = p.y + Math.sin(a) * sp;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(nx, ny); ctx.stroke();
+        p.x = nx; p.y = ny; p.life++;
+        if (p.life > p.max || p.x < 0 || p.x > W || p.y < 0 || p.y > H) parts[i] = spawn(false);
+      }
+      if (!reduced) requestAnimationFrame(frame);
+    }
+    resize(); window.addEventListener('resize', resize);
+    if (reduced) { for (var k = 0; k < 140; k++) frame(k * 40 + 40); } else requestAnimationFrame(frame);
+  }
+
+  /* ---------- wire up ---------- */
+  function init() {
+    renderCardLists();
+    setUnit(state.unit);
+    $('weatherSearchForm').addEventListener('submit', function (e) { e.preventDefault(); runSearch($('weatherCityInput').value, $('weatherCountryInput').value); });
+    $('quickPicks').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-city]'); if (!b) return;
+      $('weatherCityInput').value = b.getAttribute('data-city'); $('weatherCountryInput').value = '';
+      runSearch(b.getAttribute('data-city'), '');
+    });
+    document.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-observe]'); if (!b) return;
+      var c = CITIES.filter(function (x) { return x.id === b.getAttribute('data-observe'); })[0]; if (!c) return;
+      $('weatherCityInput').value = c.name; $('weatherCountryInput').value = '';
+      location.hash = '#live';
+      loadCity({ name: c.name, country: c.country, lat: c.lat, lon: c.lon });
+    });
+    $('weatherRefreshButton').addEventListener('click', function () {
+      if (state.current) { setStatus('새로고침 중입니다…'); refreshAll(false); } else refreshCards();
+    });
+    $('unitC').addEventListener('click', function () { setUnit('celsius'); });
+    $('unitF').addEventListener('click', function () { setUnit('fahrenheit'); });
+    $('cityFilterInput').addEventListener('input', function (e) { filterCities(e.target.value); });
+    $('navOpenButton').addEventListener('click', openNav);
+    $('navCloseButton').addEventListener('click', closeNav);
+    $('contactForm').addEventListener('submit', handleContact);
+    $('contactCopyButton').addEventListener('click', function () { copyText(contactPayload()); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeNav(); });
+    window.addEventListener('hashchange', route);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden && state.lastUpdate && Date.now() - state.lastUpdate.getTime() > REFRESH_MS) refreshAll(true);
+    });
+    setInterval(function () { if (state.weather) $('curLocalTime').textContent = localTime(state.weather.timezone); }, 30000);
+
+    route();
+    startWind();
+    var seoul = CITIES.filter(function (c) { return c.id === 'seoul'; })[0];
+    $('weatherCityInput').value = seoul.name;
+    loadCity({ name: seoul.name, country: seoul.country, lat: seoul.lat, lon: seoul.lon });
+    refreshCards();
+    scheduleRefresh();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
