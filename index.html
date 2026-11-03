@@ -512,7 +512,7 @@ p{margin:0}
       <div class="hero-copy">
         <span class="eyebrow">도시별 날씨</span>
         <h1>전 세계 주요 도시의 현재 날씨</h1>
-        <p class="lead">대륙별 대표 도시 10곳의 기온을 실시간으로 확인하세요. 도시 카드를 선택하면 홈 대시보드에서 기온, 습도, 바람, 대기질 상세 값을 볼 수 있습니다.</p>
+        <p class="lead">대륙별 대표 도시 13곳의 기온을 실시간으로 확인하세요. 도시 카드를 선택하면 홈 대시보드에서 기온, 습도, 바람, 대기질 상세 값을 볼 수 있습니다.</p>
         <div class="search-card" style="max-width:520px">
           <div class="field"><label for="cityFilterInput">도시 검색</label><input id="cityFilterInput" type="search" placeholder="도시나 국가 이름으로 걸러 보기"></div>
         </div>
@@ -536,7 +536,7 @@ p{margin:0}
         <h1>날씨를 기록하고, 비교하고, 대비합니다.</h1>
         <p class="lead">WeatherLog24는 대륙별 주요 도시의 관측값을 같은 형식으로 정리해 보여주는 글로벌 날씨 추적 서비스입니다. 기온과 바람, 대기질을 한 화면에서 비교해 여행, 출장, 야외 활동 계획을 세울 수 있습니다.</p>
         <div class="stats">
-          <div class="stat"><span class="k">관측 도시</span><span class="v">10곳</span></div>
+          <div class="stat"><span class="k">관측 도시</span><span class="v">13곳</span></div>
           <div class="stat"><span class="k">커버 대륙</span><span class="v">6개</span></div>
           <div class="stat"><span class="k">자동 갱신</span><span class="v">10분</span></div>
           <div class="stat"><span class="k">대기질 지표</span><span class="v">5종</span></div>
@@ -612,9 +612,12 @@ p{margin:0}
     { id: 'sydney',   name: '시드니',   en: 'Sydney',    country: '호주',           cc: 'AU', lat: -33.8688, lon: 151.2093, continent: '오세아니아', desc: '남반구에 위치해 계절이 반대로 흐르는 오세아니아 핵심 도시입니다.' },
     { id: 'saopaulo', name: '상파울루', en: 'São Paulo', country: '브라질',         cc: 'BR', lat: -23.5505, lon: -46.6333, continent: '남미',     desc: '고지대에 자리해 위도에 비해 기온이 낮고 강수가 잦습니다.' },
     { id: 'singapore',name: '싱가포르', en: 'Singapore', country: '싱가포르',       cc: 'SG', lat: 1.3521,   lon: 103.8198, continent: '아시아',   desc: '적도에 가까워 연중 고온다습하며 오후 스콜이 자주 발생합니다.' },
-    { id: 'capetown', name: '케이프타운', en: 'Cape Town', country: '남아프리카공화국', cc: 'ZA', lat: -33.9249, lon: 18.4241, continent: '아프리카', desc: '지중해성 기후로 겨울에 비가 집중되고 바람이 강합니다.' }
+    { id: 'capetown', name: '케이프타운', en: 'Cape Town', country: '남아프리카공화국', cc: 'ZA', lat: -33.9249, lon: 18.4241, continent: '아프리카', desc: '지중해성 기후로 겨울에 비가 집중되고 바람이 강합니다.' },
+    { id: 'hongkong', name: '홍콩',     en: 'Hong Kong', country: '홍콩',           cc: 'HK', lat: 22.3193,  lon: 114.1694, continent: '아시아',   desc: '아열대 기후로 여름은 덥고 습하며 태풍이 잦고, 겨울은 온화하고 건조합니다.' },
+    { id: 'macau',    name: '마카오',   en: 'Macau',     country: '마카오',         cc: 'MO', lat: 22.1987,  lon: 113.5439, continent: '아시아',   desc: '5~9월 우기에 비가 집중되는 아열대 기후로, 겨울은 짧고 온화합니다.' },
+    { id: 'fukuoka',  name: '후쿠오카', en: 'Fukuoka',   country: '일본',           cc: 'JP', lat: 33.5902,  lon: 130.4017, continent: '아시아',   desc: '규슈 북부의 관문 도시로 여름은 덥고 습하며, 겨울은 대한해협의 영향으로 비교적 온화합니다.' }
   ];
-  var HOME_CITY_IDS = ['newyork', 'tokyo', 'london', 'seoul', 'paris', 'dubai'];
+  var HOME_CITY_IDS = ['newyork', 'tokyo', 'london', 'seoul', 'paris', 'dubai', 'hongkong', 'macau', 'fukuoka'];
 
   var WMO = {
     0: ['맑음', 'clear'], 1: ['대체로 맑음', 'clear'], 2: ['구름 조금', 'partly'], 3: ['흐림', 'cloud'],
