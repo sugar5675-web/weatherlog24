@@ -1155,14 +1155,17 @@ window.onerror = function(msg, src, line){
     } catch (e) {
     }
   };
-  function panelVideo() {
-    if (pv) return pv;
+  function panelVideo(src) {
+    if (pv) {
+      pv.pause();
+      pv.removeAttribute("src");
+    }
     pv = document.createElement("video");
+    pv.src = src;
     pv.muted = true;
     pv.defaultMuted = true;
     pv.playsInline = true;
     pv.autoplay = true;
-    pv.preload = "auto";
     pv.setAttribute("playsinline", "");
     pv.setAttribute("webkit-playsinline", "");
     pv.setAttribute("muted", "");
@@ -1172,6 +1175,8 @@ window.onerror = function(msg, src, line){
       clearTimeout(S.attractTimer);
       S.attractTimer = setTimeout(videoDone, 2e3);
     });
+    $("wVideo").innerHTML = "";
+    $("wVideo").appendChild(pv);
     return pv;
   }
   function videoDone() {
@@ -1189,14 +1194,13 @@ window.onerror = function(msg, src, line){
     } catch (e) {
     }
     tryPlay(pv);
+    const cur = pv;
     setTimeout(() => {
-      if (pv && pv.parentNode && (pv.ended || pv.paused && !$("scrHome").classList.contains("hidden"))) {
-        const src = pv.src;
-        pv.src = src;
-        pv.load();
-        tryPlay(pv);
+      if (pv === cur && pv.parentNode && (pv.ended || pv.currentTime > 1 || pv.paused && !$("scrHome").classList.contains("hidden"))) {
+        panelVideo(cur.src);
+        resumePanel();
       }
-    }, 700);
+    }, 900);
   }
   function resumePanel() {
     const v = $("wVideo").querySelector("video");
@@ -1211,13 +1215,7 @@ window.onerror = function(msg, src, line){
     const it = items[S.attractIdx % items.length];
     const box = $("wVideo");
     if (it.type === "video") {
-      const v = panelVideo();
-      if (v.parentNode !== box) {
-        box.innerHTML = "";
-        box.appendChild(v);
-      }
-      v.src = mediaUrl(it);
-      v.load();
+      panelVideo(mediaUrl(it));
       resumePanel();
     } else {
       if (pv) pv.pause();
@@ -1234,6 +1232,10 @@ window.onerror = function(msg, src, line){
     if (v.ended || v.duration && v.currentTime >= v.duration - 0.15) videoDone();
     else if (v.paused) tryPlay(v);
   }, 1500);
+  ["touchend", "click"].forEach((ev) => document.addEventListener(ev, () => {
+    const v = $("wVideo").querySelector("video");
+    if (v && v.paused && !$("scrHome").classList.contains("hidden")) tryPlay(v);
+  }, true));
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) resumePanel();
   });
