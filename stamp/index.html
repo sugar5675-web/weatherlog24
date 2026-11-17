@@ -1146,15 +1146,63 @@ window.onerror = function(msg, src, line){
       playItem();
     } else resumePanel();
   }
+  let pv = null, pvEnded = 0;
+  const tryPlay = (v) => {
+    try {
+      const p = v.play();
+      if (p && p.catch) p.catch(() => {
+      });
+    } catch (e) {
+    }
+  };
+  function panelVideo() {
+    if (pv) return pv;
+    pv = document.createElement("video");
+    pv.muted = true;
+    pv.defaultMuted = true;
+    pv.playsInline = true;
+    pv.autoplay = true;
+    pv.preload = "auto";
+    pv.setAttribute("playsinline", "");
+    pv.setAttribute("webkit-playsinline", "");
+    pv.setAttribute("muted", "");
+    pv.setAttribute("autoplay", "");
+    pv.addEventListener("ended", videoDone);
+    pv.addEventListener("error", () => {
+      clearTimeout(S.attractTimer);
+      S.attractTimer = setTimeout(videoDone, 2e3);
+    });
+    return pv;
+  }
+  function videoDone() {
+    const now = Date.now();
+    if (now - pvEnded < 400) return;
+    pvEnded = now;
+    const items = S.media.items || [];
+    if (items.length > 1) {
+      S.attractIdx++;
+      playItem();
+      return;
+    }
+    try {
+      pv.currentTime = 0;
+    } catch (e) {
+    }
+    tryPlay(pv);
+    setTimeout(() => {
+      if (pv && pv.parentNode && (pv.ended || pv.paused && !$("scrHome").classList.contains("hidden"))) {
+        const src = pv.src;
+        pv.src = src;
+        pv.load();
+        tryPlay(pv);
+      }
+    }, 700);
+  }
   function resumePanel() {
     const v = $("wVideo").querySelector("video");
     if (!v) return;
     if ($("scrHome").classList.contains("hidden")) v.pause();
-    else {
-      const p = v.play();
-      if (p && p.catch) p.catch(() => {
-      });
-    }
+    else tryPlay(v);
   }
   function playItem() {
     clearTimeout(S.attractTimer);
@@ -1162,32 +1210,33 @@ window.onerror = function(msg, src, line){
     if (!items.length) return;
     const it = items[S.attractIdx % items.length];
     const box = $("wVideo");
-    const next = () => {
-      S.attractIdx++;
-      playItem();
-    };
     if (it.type === "video") {
-      box.innerHTML = "";
-      const v = document.createElement("video");
+      const v = panelVideo();
+      if (v.parentNode !== box) {
+        box.innerHTML = "";
+        box.appendChild(v);
+      }
       v.src = mediaUrl(it);
-      v.muted = true;
-      v.defaultMuted = true;
-      v.playsInline = true;
-      v.autoplay = true;
-      v.setAttribute("playsinline", "");
-      v.setAttribute("muted", "");
-      if (items.length === 1) v.loop = true;
-      else v.onended = next;
-      v.onerror = () => {
-        if (items.length > 1) S.attractTimer = setTimeout(next, 2e3);
-      };
-      box.appendChild(v);
+      v.load();
       resumePanel();
     } else {
+      if (pv) pv.pause();
       box.innerHTML = `<img src="${mediaUrl(it)}" alt="">`;
-      if (items.length > 1) S.attractTimer = setTimeout(next, 8e3);
+      if (items.length > 1) S.attractTimer = setTimeout(() => {
+        S.attractIdx++;
+        playItem();
+      }, 8e3);
     }
   }
+  setInterval(() => {
+    const v = $("wVideo").querySelector("video");
+    if (!v || $("scrHome").classList.contains("hidden") || $("modalRoot").innerHTML) return;
+    if (v.ended || v.duration && v.currentTime >= v.duration - 0.15) videoDone();
+    else if (v.paused) tryPlay(v);
+  }, 1500);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) resumePanel();
+  });
   renderPhone();
   applySettings();
   async function openLocal() {
