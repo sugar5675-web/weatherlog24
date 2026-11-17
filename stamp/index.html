@@ -380,7 +380,7 @@
             <div class="lbl">적립 화면 자동 복귀(초)
               <div class="step"><button type="button" data-step="fAuto" data-d="-5">−</button><b id="fAuto">15</b><button type="button" data-step="fAuto" data-d="5">+</button></div>
             </div>
-            <div class="lbl">같은 번호 재적립 제한(분, 0이면 제한 없음)
+            <div class="lbl">같은 번호 재적립 제한(분, 0이면 제한 없음 · 5분 아래는 1분씩)
               <div class="step"><button type="button" data-step="fCool" data-d="-5">−</button><b id="fCool">10</b><button type="button" data-step="fCool" data-d="5">+</button></div>
             </div>
             <label>기부 음료 1잔 금액(원, 연말 기부액 계산용)<input id="fDonVal" inputmode="numeric" maxlength="6" pattern="[0-9]*"></label>
@@ -1041,7 +1041,12 @@ window.onerror = function(msg, src, line){
     $("setErr").textContent = "";
   }
   document.querySelectorAll("[data-step]").forEach((b) => b.onclick = () => {
-    const el = $(b.dataset.step), d = +b.dataset.d;
+    const el = $(b.dataset.step);
+    let d = +b.dataset.d;
+    if (b.dataset.step === "fCool") {
+      const cur = +el.textContent;
+      d = (d > 0 ? cur < 5 : cur <= 5) ? Math.sign(d) : d;
+    }
     const lim = b.dataset.step === "fGoal" ? [3, 30] : b.dataset.step === "fCool" ? [0, 180] : [5, 120];
     el.textContent = Math.min(lim[1], Math.max(lim[0], +el.textContent + d));
   });
