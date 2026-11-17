@@ -1,4 +1,4 @@
-const C='cafejigi-stamp-v3';
+const C='cafejigi-stamp-v4';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','index.html','manifest.json','icon-180.png'])).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});
 self.addEventListener('fetch',e=>{

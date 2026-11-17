@@ -189,7 +189,7 @@
   .list-wrap{max-height:56vh;overflow:auto;margin-top:12px}
   .empty{color:var(--muted);text-align:center;padding:40px 0}
   .form{display:grid;gap:16px;max-width:520px}
-  .form label{display:grid;gap:6px;font-size:14px;color:var(--muted)}
+  .form label,.form .lbl{display:grid;gap:6px;font-size:14px;color:var(--muted)}
   .form input{padding:13px 14px;border-radius:12px;border:2px solid var(--line);font-size:17px;color:var(--ink);-webkit-user-select:text;user-select:text}
   .form input:focus{outline:none;border-color:var(--accent)}
   .step{display:flex;align-items:center;gap:10px}
@@ -373,16 +373,16 @@
         <div id="tabSettings" class="hidden">
           <div class="form">
             <label>매장 이름<input id="fShop" maxlength="30"></label>
-            <label>쿠폰 1장에 필요한 스탬프 수
+            <div class="lbl">쿠폰 1장에 필요한 스탬프 수
               <div class="step"><button type="button" data-step="fGoal" data-d="-1">−</button><b id="fGoal">10</b><button type="button" data-step="fGoal" data-d="1">+</button></div>
-            </label>
+            </div>
             <label>쿠폰 보상 이름<input id="fReward" maxlength="30" placeholder="예: 아메리카노 1잔"></label>
-            <label>적립 화면 자동 복귀(초)
+            <div class="lbl">적립 화면 자동 복귀(초)
               <div class="step"><button type="button" data-step="fAuto" data-d="-5">−</button><b id="fAuto">15</b><button type="button" data-step="fAuto" data-d="5">+</button></div>
-            </label>
-            <label>같은 번호 재적립 제한(분, 0이면 제한 없음)
+            </div>
+            <div class="lbl">같은 번호 재적립 제한(분, 0이면 제한 없음)
               <div class="step"><button type="button" data-step="fCool" data-d="-5">−</button><b id="fCool">10</b><button type="button" data-step="fCool" data-d="5">+</button></div>
-            </label>
+            </div>
             <label>기부 음료 1잔 금액(원, 연말 기부액 계산용)<input id="fDonVal" inputmode="numeric" maxlength="6" pattern="[0-9]*"></label>
             <label>관리자 PIN (숫자 4자리)<input id="fPin" inputmode="numeric" maxlength="4" pattern="[0-9]*"></label>
             <div class="err" id="setErr" style="text-align:left"></div>
@@ -978,8 +978,8 @@ window.onerror = function(msg, src, line){
     const m = modal(`<h3>${esc(fmt(id))}</h3><p>\uB204\uC801 ${num(c.total)}\uC794 \xB7 \uBC29\uBB38 ${num(c.visits)}\uD68C</p>
       <div class="form" style="gap:12px">
         <label>\uC774\uB984\xB7\uBA54\uBAA8<input id="eName" maxlength="20" value="${esc(c.name || "")}"></label>
-        <label>\uC2A4\uD0EC\uD504<div class="step"><button data-e="stamps" data-d="-1">\u2212</button><b id="eStamps">${v.stamps}</b><button data-e="stamps" data-d="1">+</button></div></label>
-        <label>\uCFE0\uD3F0<div class="step"><button data-e="coupons" data-d="-1">\u2212</button><b id="eCoupons">${v.coupons}</b><button data-e="coupons" data-d="1">+</button></div></label>
+        <div class="lbl">\uC2A4\uD0EC\uD504<div class="step"><button data-e="stamps" data-d="-1">\u2212</button><b id="eStamps">${v.stamps}</b><button data-e="stamps" data-d="1">+</button></div></div>
+        <div class="lbl">\uCFE0\uD3F0<div class="step"><button data-e="coupons" data-d="-1">\u2212</button><b id="eCoupons">${v.coupons}</b><button data-e="coupons" data-d="1">+</button></div></div>
         <div><div style="font-size:14px;color:var(--muted);margin-bottom:4px">\uCD5C\uADFC \uAE30\uB85D</div>${logHtml}</div>
       </div>
       ${cooldownLeft(c) > 0 ? `<button class="btn ghost small" data-a="unlock" style="margin-top:14px;width:100%">\uC7AC\uC801\uB9BD \uC81C\uD55C \uD480\uAE30 (${cooldownLeft(c)}\uBD84 \uB0A8\uC74C)</button>` : ""}
