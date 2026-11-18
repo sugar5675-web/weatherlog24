@@ -1429,22 +1429,44 @@ window.onerror = function(msg, src, line){
     } catch (e) {
       if (e && e.name === "AbortError") return;
     }
-    const m = modal(`<h3>\uBC31\uC5C5 \uB0B4\uC6A9 \uBCF5\uC0AC</h3><p>\uC774 \uC544\uC774\uD328\uB4DC\uC5D0\uC11C\uB294 \uD30C\uC77C\uB85C \uC800\uC7A5\uD560 \uC218 \uC5C6\uC5B4\uC694. "\uC804\uCCB4 \uBCF5\uC0AC"\uB97C \uB204\uB978 \uB4A4 \uBA54\uBAA8 \uC571\uC774\uB098 \uB098\uC5D0\uAC8C \uBCF4\uB0B4\uB294 \uBA54\uC77C\uC5D0 \uBD99\uC5EC \uB123\uC5B4 \uBCF4\uAD00\uD574 \uC8FC\uC138\uC694.</p>
-      <textarea id="bkText" readonly style="width:100%;height:120px;font-size:12px;border:2px solid var(--line);border-radius:12px;padding:10px;-webkit-user-select:text;user-select:text"></textarea>
-      <div class="row"><button class="btn ghost" data-a="close">\uB2EB\uAE30</button><button class="btn green" data-a="copy">\uC804\uCCB4 \uBCF5\uC0AC</button></div>`);
+    const canShareText = !!navigator.share;
+    const m = modal(`<h3>\uBC31\uC5C5 \uB0B4\uC6A9 \uBCF4\uAD00</h3><p>\uC774 \uC544\uC774\uD328\uB4DC\uB294 \uD30C\uC77C \uC800\uC7A5\uC744 \uC9C0\uC6D0\uD558\uC9C0 \uC54A\uC544\uC694. \uB300\uC2E0 \uC544\uB798 \uBC84\uD2BC\uC73C\uB85C \uBC31\uC5C5 \uB0B4\uC6A9\uC744 \uBA54\uBAA8\u00B7\uBA54\uC77C\u00B7\uCE74\uCE74\uC624\uD1A1(\uB098\uC5D0\uAC8C)\uC73C\uB85C \uBCF4\uB0B4 \uB450\uC138\uC694. \uAE30\uB85D\uC740 \uADF8\uB300\uB85C \uC548\uC804\uD574\uC694.</p>
+      <textarea id="bkText" style="width:100%;height:120px;font-size:12px;border:2px solid var(--line);border-radius:12px;padding:10px;-webkit-user-select:text;user-select:text"></textarea>
+      <div class="row"><button class="btn ghost" data-a="close">\uB2EB\uAE30</button>${canShareText ? '<button class="btn primary" data-a="share">\uBCF4\uB0B4\uAE30(\uBA54\uBAA8\u00B7\uBA54\uC77C)</button>' : ""}<button class="btn green" data-a="copy">\uC804\uCCB4 \uBCF5\uC0AC</button></div>`);
     const ta = m.querySelector("#bkText");
     ta.value = text;
-    m.addEventListener("click", (ev) => {
+    m.addEventListener("click", async (ev) => {
       const a = ev.target.closest("[data-a]");
       if (!a) return;
       if (a.dataset.a === "close") return closeModal();
+      if (a.dataset.a === "share") {
+        try {
+          await navigator.share({ title: name, text });
+          markBackup();
+          toast("\uBC31\uC5C5 \uB0B4\uC6A9\uC744 \uBCF4\uB0C8\uC5B4\uC694.");
+        } catch (e) {
+          if (!(e && e.name === "AbortError")) toast("\uBCF4\uB0B4\uAE30\uAC00 \uC548 \uB3FC\uC694. \"\uC804\uCCB4 \uBCF5\uC0AC\"\uB97C \uC368 \uC8FC\uC138\uC694.");
+        }
+        return;
+      }
+      ta.contentEditable = "true";
+      ta.readOnly = false;
       ta.focus();
+      try {
+        const r = document.createRange();
+        r.selectNodeContents(ta);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+      } catch (e) {
+      }
       ta.setSelectionRange(0, ta.value.length);
       let ok = false;
       try {
         ok = document.execCommand("copy");
       } catch (e) {
       }
+      ta.blur();
       if (ok) {
         markBackup();
         toast("\uBCF5\uC0AC\uD588\uC5B4\uC694. \uBA54\uBAA8 \uC571\uC5D0 \uBD99\uC5EC \uB123\uC5B4 \uC8FC\uC138\uC694.");
