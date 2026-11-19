@@ -47,6 +47,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        AutoBackup.init(this);
+        AutoBackup.schedule(this);
 
         web = new WebView(this);
         setContentView(web);
@@ -284,6 +286,16 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public boolean isApp() {
             return true;
+        }
+
+        @JavascriptInterface
+        public boolean autoBackupDue() {
+            return AutoBackup.isDue(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public boolean autoBackup(String name, String text) {
+            return AutoBackup.saveAuto(MainActivity.this, AutoBackup.safeName(name), text);
         }
 
         @JavascriptInterface

@@ -1538,6 +1538,14 @@ window.onerror = function(msg, src, line){
     S.db = db;
     S.assets = local.assets;
     try {
+      const A = window.CafeApp;
+      if (A && A.autoBackup && A.autoBackupDue && A.autoBackupDue()) {
+        const ok = A.autoBackup(`카페지기-자동백업-${today()}.json`, JSON.stringify({ app: "cafejigi-stamp", savedAt: Date.now(), auto: true, docs: db.exportAll() }));
+        if (ok) markBackup();
+      }
+    } catch (e) {
+    }
+    try {
       if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
     } catch (e) {
     }
