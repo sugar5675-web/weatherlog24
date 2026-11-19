@@ -1403,6 +1403,14 @@ window.onerror = function(msg, src, line){
     const name = `\uCE74\uD398\uC9C0\uAE30-\uC801\uB9BD\uBC31\uC5C5-${today()}.json`;
     const text = JSON.stringify({ app: "cafejigi-stamp", savedAt: Date.now(), docs: S.db.exportAll() });
     const canDownload = "download" in document.createElement("a");
+    if (window.CafeApp && window.CafeApp.saveBackup) {
+      try {
+        window.CafeApp.saveBackup(name, text);
+        markBackup();
+        return;
+      } catch (e) {
+      }
+    }
     try {
       let file = null;
       try {

@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.application'
+}
+
+def runNo = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInteger()
+
+android {
+    namespace 'com.cafejigi.stamp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.cafejigi.stamp'
+        minSdk 21
+        targetSdk 34
+        versionCode runNo
+        versionName "1.0.${runNo}"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../release.jks')
+            storePassword 'cafejigi1234'
+            keyAlias 'cafejigi'
+            keyPassword 'cafejigi1234'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core:1.13.1'
+}
