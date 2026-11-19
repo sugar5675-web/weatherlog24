@@ -88,8 +88,28 @@ public class MainActivity extends Activity {
                 Intent i = new Intent(Intent.ACTION_GET_CONTENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
                 i.setType("*/*");
+                String title = "파일 선택";
+                java.util.ArrayList<String> mimes = new java.util.ArrayList<>();
+                String[] acc = params.getAcceptTypes();
+                if (acc != null) {
+                    for (String a : acc) {
+                        for (String t : a.split(",")) {
+                            t = t.trim();
+                            if (t.contains("/")) mimes.add(t);
+                        }
+                    }
+                }
+                if (mimes.contains("video/*") || mimes.contains("image/*")) {
+                    i.putExtra(Intent.EXTRA_MIME_TYPES, mimes.toArray(new String[0]));
+                    title = "영상·사진 선택";
+                } else {
+                    title = "백업 파일 선택";
+                }
+                if (params.getMode() == FileChooserParams.MODE_OPEN_MULTIPLE) {
+                    i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                }
                 try {
-                    startActivityForResult(Intent.createChooser(i, "백업 파일 선택"), REQ_FILE);
+                    startActivityForResult(Intent.createChooser(i, title), REQ_FILE);
                 } catch (ActivityNotFoundException e) {
                     fileCallback = null;
                     return false;
@@ -160,7 +180,16 @@ public class MainActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQ_FILE && fileCallback != null) {
-            Uri[] result = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            Uri[] result = null;
+            if (resultCode == RESULT_OK && data != null) {
+                android.content.ClipData cd = data.getClipData();
+                if (cd != null && cd.getItemCount() > 0) {
+                    result = new Uri[cd.getItemCount()];
+                    for (int k = 0; k < cd.getItemCount(); k++) result[k] = cd.getItemAt(k).getUri();
+                } else if (data.getData() != null) {
+                    result = new Uri[]{data.getData()};
+                }
+            }
             fileCallback.onReceiveValue(result);
             fileCallback = null;
         }
